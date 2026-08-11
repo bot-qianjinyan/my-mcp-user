@@ -123,7 +123,7 @@ flowchart TB
     L1b["<b>L1b · 表面指纹</b><br/>golden JSON 防改名/删工具"]:::done
     L1c["<b>L1c · Resource/Prompt</b><br/>read / get_prompt 冒烟断言"]:::done
     L4l["<b>L4-lite · 协议行为</b><br/>未知工具、缺参被拒"]:::done
-    L2["<b>L2 · 行为</b><br/>call_tool + MockTransport 打 REST"]:::gap
+    L2["<b>L2 · 行为</b><br/>call_tool + MockTransport 打 REST"]:::done
     L4["<b>L4 · 传输层</b><br/>Streamable HTTP initialize /mcp"]:::gap
     L5["<b>L5 · E2E</b><br/>真起 API+MCP 跑只读链路"]:::done
 
@@ -137,7 +137,7 @@ flowchart TB
 | **L1b 表面漂移** | tools/resources/prompts 名称集合与 golden 一致 | 提交 `tests/mcp/surface.golden.json` + `UPDATE_GOLDEN=1` | 缺失 |
 | **L1c Resource/Prompt** | `read_resource` / `get_prompt` 成功且内容非空 | 同 Client；模板资源需带 token / bill_id | 脚本有调用，缺结构化断言 |
 | **L4-lite 协议行为** | 未知 tool 失败；缺必填参数失败；`list_*` 非空 | Client `call_tool` / 非法参数 | 缺失 |
-| **L2 行为** | tool 正确调用 REST（URL/method/body）；响应含 `ok` | `httpx.MockTransport` / `respx` 挡在 MCP→API 边界 | 缺失（现为真打 API） |
+| **L2 行为** | tool 正确调用 REST（URL/method/body）；响应含 `ok` | `httpx.MockTransport` / `respx` 挡在 MCP→API 边界 | **Done** — `tests/mcp/test_tool_http_wiring.py` |
 | **L4 传输层** | Streamable HTTP：`initialize`、错误 JSON、路径 `/mcp` | ASGI / 真实 HTTP 客户端打 `:3001/mcp` | 缺失 |
 | **L5 E2E** | 真 API + 真 MCP：注册→登录→记账→分享→点赞 | 现有 `test_mcp_*_client.py`（可迁入 pytest e2e） | **脚本级已有** |
 | **L6 Agent 评估** | LLM 是否选对工具（可选） | mcp-eval 等；**不进默认 CI** | 不做（学习项目） |
@@ -205,7 +205,7 @@ pip install -r requirements-dev.txt
 make test
 ```
 
-目标树（当前已落地，不含 L2 行为文件）：
+目标树（当前已落地）：
 
 ```
 tests/
@@ -218,7 +218,8 @@ tests/
     ├── test_tool_contract.py      # L1
     ├── test_surface_drift.py      # L1b
     ├── test_protocol_behavior.py  # L4-lite
-    └── test_resources_prompts.py  # L1c
+    ├── test_resources_prompts.py  # L1c
+    └── test_tool_http_wiring.py   # L2
 ```
 
 ### Phase 2 — 协议层（L1 / L1b / L4-lite / L1c）（**已完成**）
@@ -262,12 +263,12 @@ tests/
 
 ### Phase 3 — 行为 Mock + 传输层
 
-| # | 任务 | 说明 |
+| # | 任务 | 状态 |
 |---|---|---|
-| 3.1 | **L2**：对 `mcp_server.server._request` / httpx 边界做 Mock | 不断言内部私有函数细节；断言请求 method/path/json |
-| 3.2 | **L4**：对 Streamable HTTP 做 `initialize` + 简单 `tools/list` | 可用已启动的 `:3001` 或 ASGI 挂载 |
-| 3.3 | （可选）鉴权中间件 | 本学习项目 MCP 本身不强制 HTTP Bearer；业务鉴权在 tool 参数 `access_token` 中。若日后给 `/mcp` 加网关鉴权，再补 L3 |
-| 3.4 | 覆盖率门槛（可选） | 例如 MCP server 模块 ≥ 70% |
+| 3.1 | **L2**：`httpx.MockTransport` 断言 method/path/headers/json | **Done** — `test_tool_http_wiring.py` |
+| 3.2 | **L4**：对 Streamable HTTP 做 `initialize` + `tools/list` | 未做 |
+| 3.3 | （可选）鉴权中间件 | 未做 |
+| 3.4 | 覆盖率门槛（可选） | 未做 |
 
 ---
 
@@ -337,7 +338,8 @@ fixture 读取 `API_BASE_URL` / `MCP` URL；默认本地：
 - [x] golden 表面文件已提交；改 tool 名会失败  
 - [x] README / 本文命令与仓库一致  
 - [x] 现有 `scripts/*_client.py` 仍可作手工 E2E  
-- [ ] Phase 3：L2 MockTransport / L4 真传输（未做）
+- [x] Phase 3 部分：L2 MockTransport（已做）  
+- [ ] Phase 3 剩余：L4 真传输（未做）
 
 ---
 

@@ -142,6 +142,8 @@ make test
 # make test-api
 # make test-mcp
 
+# 测试分层说明（L2 Mock / L4 真传输等）：docs/MCP_L2_L4_EXPLAINED.zh.md
+
 # 手工 E2E 冒烟（需先启动 API；MCP 脚本还需启动 MCP）
 python scripts/test_user_client.py
 python scripts/test_bill_client.py
@@ -181,7 +183,8 @@ my-mcp/
 │       ├── test_tool_contract.py
 │       ├── test_surface_drift.py
 │       ├── test_protocol_behavior.py
-│       └── test_resources_prompts.py
+│       ├── test_resources_prompts.py
+│       └── test_tool_http_wiring.py  # L2 Mock：tool→REST 接线
 ├── scripts/
 │   ├── http_helpers.py           # REST 测试公共工具
 │   ├── mcp_helpers.py            # MCP 测试公共工具
