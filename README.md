@@ -166,6 +166,11 @@ inspect view
 
 # 无 API Key 时：用 mockllm 本地验证 Inspect→MCP 接线
 python scripts/run_inspect_user_mcp_smoke_mock.py
+
+# macOS + Netskope 若报 ClientConnectorCertificateError：
+./scripts/build_ssl_certs.sh
+export GOOGLE_API_KEY='...'
+./scripts/run_inspect_gemini.sh google/gemini-3.6-flash
 ```
 
 说明见 [docs/INSPECT_MCP.zh.md](docs/INSPECT_MCP.zh.md)。

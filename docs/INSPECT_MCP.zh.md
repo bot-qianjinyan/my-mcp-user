@@ -78,3 +78,25 @@ python scripts/run_inspect_user_mcp_smoke_mock.py
 - 评测前务必先起 API + MCP，否则 `mcp_server_http` 连不上。  
 - 用 `mcp_tools` 收窄工具面，避免模型调用与题意无关的接口。  
 - 需要模型 API Key；没有模型时无法真正跑通 Agent 评测。  
+
+### macOS + Netskope：`ClientConnectorCertificateError`
+
+本机若装了 Netskope，Python 默认 `certifi` 可能校不过 Gemini HTTPS，出现：
+
+`ClientConnectorCertificateError` / `CERTIFICATE_VERIFY_FAILED`
+
+处理：
+
+```bash
+# 生成 certifi + Netskope 组合 CA
+./scripts/build_ssl_certs.sh
+
+# 推荐：用封装脚本跑（自动设置 SSL_CERT_FILE）
+export GOOGLE_API_KEY='...'
+./scripts/run_inspect_gemini.sh google/gemini-3.6-flash
+
+# 或手动：
+export SSL_CERT_FILE="$PWD/.certs/combined-ca.pem"
+export REQUESTS_CA_BUNDLE="$SSL_CERT_FILE"
+inspect eval evals/user_mcp_smoke.py --model google/gemini-3.6-flash
+```
