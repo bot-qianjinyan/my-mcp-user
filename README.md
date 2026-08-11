@@ -1,6 +1,8 @@
 # User MCP Demo
 
-学习项目：先提供用户 REST API，再基于这些接口构建 **Streamable HTTP** MCP Server，覆盖 MCP 三要素（Tools / Resources / Prompts）。
+学习项目：先提供用户与账单 REST API，再基于这些接口构建 **Streamable HTTP** MCP Server，覆盖 MCP 三要素（Tools / Resources / Prompts）。
+
+> 生产环境里 `app` 与 `mcp_server` 完全可以拆成两个仓库：MCP 只通过 HTTP 调用已有微服务，旧服务无需改动。
 
 ## 架构
 
@@ -39,6 +41,8 @@ python -m mcp_server
 
 ## REST API
 
+### 用户
+
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | POST | `/api/users/register` | 注册 |
@@ -46,50 +50,75 @@ python -m mcp_server
 | GET | `/api/users/me` | 当前用户（需 Bearer Token） |
 | PATCH | `/api/users/me` | 更新个人信息（需 Bearer Token） |
 
+### 账单
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/bills` | 创建自己的账单 |
+| GET | `/api/bills` | 读取自己的账单列表 |
+| GET | `/api/bills/shared-with-me` | 别人分享给自己的账单 |
+| GET | `/api/bills/{id}` | 读取单条（自己的或分享给自己的） |
+| PATCH | `/api/bills/{id}` | 更新自己的账单 |
+| DELETE | `/api/bills/{id}` | 删除自己的账单 |
+| POST | `/api/bills/{id}/share` | 分享给其他用户阅读 `{"username":"..."}` |
+| DELETE | `/api/bills/{id}/share/{username}` | 取消分享 |
+| POST | `/api/bills/{id}/like` | 点赞（自己的或已分享给自己的） |
+| DELETE | `/api/bills/{id}/like` | 取消点赞 |
+
 ### 示例
 
 ```bash
-# 注册
-curl -s http://127.0.0.1:8000/api/users/register \
-  -H 'Content-Type: application/json' \
-  -d '{"username":"alice","email":"alice@example.com","password":"secret123","display_name":"Alice"}'
-
-# 登录
-curl -s http://127.0.0.1:8000/api/users/login \
-  -H 'Content-Type: application/json' \
-  -d '{"username":"alice","password":"secret123"}'
-
-# 更新资料（替换 TOKEN）
-curl -s http://127.0.0.1:8000/api/users/me \
-  -X PATCH \
+# 登录拿 TOKEN 后创建账单
+curl -s http://127.0.0.1:8000/api/bills \
   -H "Authorization: Bearer TOKEN" \
   -H 'Content-Type: application/json' \
-  -d '{"display_name":"Alice Updated","bio":"Hello MCP"}'
+  -d '{"title":"午餐","amount":"32.50","category":"food","spent_at":"2026-08-11"}'
+
+# 分享给 bob
+curl -s http://127.0.0.1:8000/api/bills/1/share \
+  -H "Authorization: Bearer TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"bob"}'
+
+# 点赞
+curl -s http://127.0.0.1:8000/api/bills/1/like \
+  -X POST \
+  -H "Authorization: Bearer TOKEN"
 ```
 
 ## MCP 三要素
 
-### Tools（可执行操作）
+### Tools
 
-- `register_user` → POST `/api/users/register`
-- `login_user` → POST `/api/users/login`
-- `get_current_user` → GET `/api/users/me`
-- `update_user_profile` → PATCH `/api/users/me`
+**用户**
 
-### Resources（可读数据）
+- `register_user` / `login_user` / `get_current_user` / `update_user_profile`
+
+**账单**
+
+- `create_bill` / `list_my_bills` / `list_shared_bills` / `get_bill`
+- `update_bill` / `delete_bill`
+- `share_bill` / `unshare_bill`
+- `like_bill` / `unlike_bill`
+
+### Resources
 
 - `user://api/health` — API 健康检查
 - `user://docs/overview` — 项目说明
 - `user://profile/{access_token}` — 当前用户资料
+- `bill://mine/{access_token}` — 我的账单列表
+- `bill://shared/{access_token}` — 分享给我的账单
+- `bill://item/{access_token}/{bill_id}` — 单条账单
 
-### Prompts（提示词模板）
+### Prompts
 
 - `welcome_new_user` — 欢迎新用户
 - `help_update_profile` — 协助更新资料
+- `help_create_bill` — 协助记账
+- `help_share_bill` — 协助分享账单
+- `help_like_bill` — 协助点赞
 
 ## Cursor 连接（Streamable HTTP）
-
-在 Cursor MCP 配置中增加：
 
 ```json
 {
@@ -102,8 +131,6 @@ curl -s http://127.0.0.1:8000/api/users/me \
 ```
 
 ## 本地验证
-
-先启动 API（以及可选的 MCP Server），再分别运行：
 
 ```bash
 source .venv/bin/activate
@@ -119,18 +146,20 @@ python scripts/test_mcp_client.py
 
 ```
 my-mcp/
-├── app/                      # FastAPI 用户 REST API
+├── app/                      # FastAPI REST API
 │   ├── __init__.py
 │   ├── main.py               # 应用入口
 │   ├── config.py             # 配置（端口、数据库、JWT）
 │   ├── database.py           # SQLAlchemy / SQLite
-│   ├── models.py             # User 表模型
+│   ├── models.py             # User / Bill / BillShare / BillLike
 │   ├── schemas.py            # 请求/响应 Pydantic 模型
 │   ├── auth.py               # 密码哈希、JWT、鉴权依赖
-│   ├── services.py           # 注册/登录/更新业务逻辑
+│   ├── services.py           # 用户业务逻辑
+│   ├── bill_services.py      # 账单业务逻辑
 │   └── routers/
 │       ├── __init__.py
-│       └── users.py          # /api/users 路由
+│       ├── users.py          # /api/users
+│       └── bills.py          # /api/bills
 ├── mcp_server/               # Streamable HTTP MCP Server
 │   ├── __init__.py
 │   ├── __main__.py           # python -m mcp_server
