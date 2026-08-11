@@ -135,11 +135,17 @@ curl -s http://127.0.0.1:8000/api/bills/1/like \
 ```bash
 source .venv/bin/activate
 
-# 只测 REST API
-python scripts/test_api_client.py
+# 只测用户 REST API
+python scripts/test_user_client.py
 
-# 只测 MCP（需 API + MCP 都已启动）
-python scripts/test_mcp_client.py
+# 只测账单 REST API
+python scripts/test_bill_client.py
+
+# 只测 MCP 用户能力（需 API + MCP 都已启动）
+python scripts/test_mcp_user_client.py
+
+# 只测 MCP 账单能力（需 API + MCP 都已启动）
+python scripts/test_mcp_bill_client.py
 ```
 
 ## 目录结构
@@ -165,8 +171,12 @@ my-mcp/
 │   ├── __main__.py           # python -m mcp_server
 │   └── server.py             # Tools / Resources / Prompts
 ├── scripts/
-│   ├── test_api_client.py    # 独立测试 REST API
-│   └── test_mcp_client.py    # 独立测试 MCP Server
+│   ├── http_helpers.py           # REST 测试公共工具
+│   ├── mcp_helpers.py            # MCP 测试公共工具
+│   ├── test_user_client.py       # 测试用户 REST API
+│   ├── test_bill_client.py       # 测试账单 REST API
+│   ├── test_mcp_user_client.py   # 测试 MCP 用户能力
+│   └── test_mcp_bill_client.py   # 测试 MCP 账单能力
 ├── data/
 │   └── users.db              # SQLite 数据库（运行后生成）
 ├── .env.example
