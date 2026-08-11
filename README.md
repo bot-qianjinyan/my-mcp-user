@@ -144,6 +144,7 @@ make test
 # make test-e2e   # 只跑 L4 Streamable HTTP 等 e2e 标记
 
 # 测试分层说明（L2 Mock / L4 真传输等）：docs/MCP_L2_L4_EXPLAINED.zh.md
+# Inspect + MCP 配合：docs/INSPECT_MCP.zh.md
 
 # 手工 E2E 冒烟（需先启动 API；MCP 脚本还需启动 MCP）
 python scripts/test_user_client.py
@@ -151,6 +152,23 @@ python scripts/test_bill_client.py
 python scripts/test_mcp_user_client.py
 python scripts/test_mcp_bill_client.py
 ```
+
+## Inspect 评测示例（对接 `:3001/mcp`）
+
+先启动 API + MCP，再：
+
+```bash
+pip install -r requirements-inspect.txt
+# 另需模型 SDK，例如：pip install openai && export OPENAI_API_KEY=...
+
+inspect eval evals/user_mcp_smoke.py --model openai/gpt-4o
+inspect view
+
+# 无 API Key 时：用 mockllm 本地验证 Inspect→MCP 接线
+python scripts/run_inspect_user_mcp_smoke_mock.py
+```
+
+说明见 [docs/INSPECT_MCP.zh.md](docs/INSPECT_MCP.zh.md)。
 
 ## 目录结构
 
@@ -187,6 +205,9 @@ my-mcp/
 │       ├── test_resources_prompts.py
 │       ├── test_tool_http_wiring.py          # L2 Mock：tool→REST 接线
 │       └── test_streamable_http_transport.py # L4：真 Streamable HTTP /mcp
+├── evals/                            # Inspect 评测示例
+│   ├── __init__.py
+│   └── user_mcp_smoke.py             # 最小任务：对接 http://127.0.0.1:3001/mcp
 ├── scripts/
 │   ├── http_helpers.py           # REST 测试公共工具
 │   ├── mcp_helpers.py            # MCP 测试公共工具
@@ -194,12 +215,17 @@ my-mcp/
 │   ├── test_bill_client.py       # 手工 E2E：账单 REST
 │   ├── test_mcp_user_client.py   # 手工 E2E：MCP 用户
 │   └── test_mcp_bill_client.py   # 手工 E2E：MCP 账单
+├── docs/
+│   ├── MCP_TOOLS_ONLY_SERVER.zh.md
+│   ├── MCP_L2_L4_EXPLAINED.zh.md
+│   ├── TESTING_IMPROVEMENT_PLAN.zh.md
+│   └── INSPECT_MCP.zh.md             # Inspect + MCP 配合说明
 ├── data/
 │   └── users.db                  # SQLite 数据库（运行后生成）
 ├── Makefile
 ├── pytest.ini
 ├── requirements.txt
 ├── requirements-dev.txt
-├── TESTING_IMPROVEMENT_PLAN.zh.md
+├── requirements-inspect.txt          # 可选：Inspect 评测依赖
 └── README.md
 ```

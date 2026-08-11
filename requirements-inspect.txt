@@ -1,0 +1,6 @@
+# Inspect 评测示例依赖（可选，不进入主 requirements）
+inspect-ai>=0.3.250
+# 按所用模型提供商安装其一，例如：
+# openai
+# anthropic
+# google-genai
