@@ -134,17 +134,18 @@ curl -s http://127.0.0.1:8000/api/bills/1/like \
 
 ```bash
 source .venv/bin/activate
+pip install -r requirements-dev.txt   # 首次需要
 
-# 只测用户 REST API
+# 推荐：一条命令跑 pytest（无需先起服务）
+make test
+# 或：
+# make test-api
+# make test-mcp
+
+# 手工 E2E 冒烟（需先启动 API；MCP 脚本还需启动 MCP）
 python scripts/test_user_client.py
-
-# 只测账单 REST API
 python scripts/test_bill_client.py
-
-# 只测 MCP 用户能力（需 API + MCP 都已启动）
 python scripts/test_mcp_user_client.py
-
-# 只测 MCP 账单能力（需 API + MCP 都已启动）
 python scripts/test_mcp_bill_client.py
 ```
 
@@ -170,17 +171,30 @@ my-mcp/
 │   ├── __init__.py
 │   ├── __main__.py           # python -m mcp_server
 │   └── server.py             # Tools / Resources / Prompts
+├── tests/                        # pytest 套件
+│   ├── conftest.py
+│   ├── api/
+│   │   ├── test_users.py
+│   │   └── test_bills.py
+│   └── mcp/
+│       ├── surface.golden.json   # L1b 表面指纹
+│       ├── test_tool_contract.py
+│       ├── test_surface_drift.py
+│       ├── test_protocol_behavior.py
+│       └── test_resources_prompts.py
 ├── scripts/
 │   ├── http_helpers.py           # REST 测试公共工具
 │   ├── mcp_helpers.py            # MCP 测试公共工具
-│   ├── test_user_client.py       # 测试用户 REST API
-│   ├── test_bill_client.py       # 测试账单 REST API
-│   ├── test_mcp_user_client.py   # 测试 MCP 用户能力
-│   └── test_mcp_bill_client.py   # 测试 MCP 账单能力
+│   ├── test_user_client.py       # 手工 E2E：用户 REST
+│   ├── test_bill_client.py       # 手工 E2E：账单 REST
+│   ├── test_mcp_user_client.py   # 手工 E2E：MCP 用户
+│   └── test_mcp_bill_client.py   # 手工 E2E：MCP 账单
 ├── data/
-│   └── users.db              # SQLite 数据库（运行后生成）
-├── .env.example
-├── .gitignore
+│   └── users.db                  # SQLite 数据库（运行后生成）
+├── Makefile
+├── pytest.ini
 ├── requirements.txt
+├── requirements-dev.txt
+├── TESTING_IMPROVEMENT_PLAN.zh.md
 └── README.md
 ```

@@ -1,0 +1,35 @@
+{
+  "tools": [
+    "register_user",
+    "login_user",
+    "get_current_user",
+    "update_user_profile",
+    "create_bill",
+    "list_my_bills",
+    "list_shared_bills",
+    "get_bill",
+    "update_bill",
+    "delete_bill",
+    "share_bill",
+    "unshare_bill",
+    "like_bill",
+    "unlike_bill"
+  ],
+  "resources": [
+    "user://api/health",
+    "user://docs/overview"
+  ],
+  "resource_templates": [
+    "user://profile/{access_token}",
+    "bill://mine/{access_token}",
+    "bill://shared/{access_token}",
+    "bill://item/{access_token}/{bill_id}"
+  ],
+  "prompts": [
+    "welcome_new_user",
+    "help_update_profile",
+    "help_create_bill",
+    "help_share_bill",
+    "help_like_bill"
+  ]
+}

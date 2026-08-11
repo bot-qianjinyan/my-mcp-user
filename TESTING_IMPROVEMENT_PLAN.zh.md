@@ -119,11 +119,11 @@ flowchart TB
     classDef opt  fill:#4a148c,stroke:#25074a,color:#fff
 
     L0["<b>L0 · Smoke</b><br/>现有 scripts/*_client.py<br/>API health + MCP list/call"]:::done
-    L1["<b>L1 · 工具契约</b><br/>tools/list：名称、描述、inputSchema"]:::gap
-    L1b["<b>L1b · 表面指纹</b><br/>golden JSON 防改名/删工具"]:::gap
-    L1c["<b>L1c · Resource/Prompt</b><br/>read / get_prompt 冒烟断言"]:::next
-    L4l["<b>L4-lite · 协议行为</b><br/>未知工具、缺参被拒"]:::gap
-    L2["<b>L2 · 行为</b><br/>call_tool + MockTransport 打 REST"]:::next
+    L1["<b>L1 · 工具契约</b><br/>tools/list：名称、描述、inputSchema"]:::done
+    L1b["<b>L1b · 表面指纹</b><br/>golden JSON 防改名/删工具"]:::done
+    L1c["<b>L1c · Resource/Prompt</b><br/>read / get_prompt 冒烟断言"]:::done
+    L4l["<b>L4-lite · 协议行为</b><br/>未知工具、缺参被拒"]:::done
+    L2["<b>L2 · 行为</b><br/>call_tool + MockTransport 打 REST"]:::gap
     L4["<b>L4 · 传输层</b><br/>Streamable HTTP initialize /mcp"]:::gap
     L5["<b>L5 · E2E</b><br/>真起 API+MCP 跑只读链路"]:::done
 
@@ -189,17 +189,23 @@ python scripts/test_mcp_user_client.py
 python scripts/test_mcp_bill_client.py
 ```
 
-### Phase 1 — pytest 化 + 一条命令（下一步）
+### Phase 1 — pytest 化 + 一条命令（**已完成**）
 
-| # | 任务 | 说明 |
+| # | 任务 | 状态 |
 |---|---|---|
-| 1.1 | 增加 `pytest` / `pytest-asyncio` / `httpx`（已有）到开发依赖 | `requirements-dev.txt` 或 `pyproject.toml` |
-| 1.2 | 目录：`tests/api/`、`tests/mcp/`、`tests/conftest.py` | fixture：临时 SQLite、`TestClient(app)`、可选 MCP Client |
-| 1.3 | 把 `scripts/test_user_client.py` / `test_bill_client.py` 迁为 pytest | 不再依赖手工起服务（API 用 FastAPI `TestClient`） |
-| 1.4 | 根目录 `Makefile`：`make test-api` / `make test-mcp` / `make test` | 文档与命令一致 |
-| 1.5 | MCP 冒烟：优先 `Client(mcp)` 内存模式测 list；E2E 用 mark `@pytest.mark.e2e` | 默认 CI 不强制起端口 |
+| 1.1 | `requirements-dev.txt`：pytest / pytest-asyncio | **Done** |
+| 1.2 | `tests/api/`、`tests/mcp/`、`tests/conftest.py` | **Done** |
+| 1.3 | REST 主路径迁入 pytest（`TestClient` + 临时 SQLite） | **Done** |
+| 1.4 | `Makefile`：`make test` / `test-api` / `test-mcp` | **Done** |
+| 1.5 | MCP 协议层用内存 `Client(mcp)`；scripts 保留作手工 E2E | **Done** |
 
-建议的目标树：
+```bash
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+make test
+```
+
+目标树（当前已落地，不含 L2 行为文件）：
 
 ```
 tests/
@@ -208,22 +214,21 @@ tests/
 │   ├── test_users.py
 │   └── test_bills.py
 └── mcp/
+    ├── surface.golden.json
     ├── test_tool_contract.py      # L1
     ├── test_surface_drift.py      # L1b
     ├── test_protocol_behavior.py  # L4-lite
-    ├── test_resources_prompts.py  # L1c
-    ├── test_user_tools.py         # L2/L5 用户行为
-    └── test_bill_tools.py         # L2/L5 账单行为
+    └── test_resources_prompts.py  # L1c
 ```
 
-### Phase 2 — 协议层（L1 / L1b / L4-lite / L1c）
+### Phase 2 — 协议层（L1 / L1b / L4-lite / L1c）（**已完成**）
 
-| # | 任务 | 验收 |
+| # | 任务 | 状态 |
 |---|---|---|
-| 2.1 | **L1** 参数化遍历 `list_tools()`：名称唯一、长度、描述、`inputSchema` 为 object | 全 tool 绿 |
-| 2.2 | **L1b** 提交 golden：tools / resources / prompts 名称集合 | 改名会红；`UPDATE_GOLDEN=1` 可刷新 |
-| 2.3 | **L4-lite** 未知 tool、缺 `access_token` 等必填参数应失败 | 断言 `is_error` 或异常 |
-| 2.4 | **L1c** `user://api/health`、`user://docs/overview`；`welcome_new_user` / `help_create_bill` get 成功 | 非空内容 |
+| 2.1 | **L1** `test_tool_contract.py` | **Done** |
+| 2.2 | **L1b** `surface.golden.json` + `UPDATE_GOLDEN=1` | **Done** |
+| 2.3 | **L4-lite** 未知 tool / 缺参 | **Done** |
+| 2.4 | **L1c** health / docs / welcome / help_create_bill | **Done** |
 
 **Golden 示例字段（示意）：**
 
@@ -326,12 +331,13 @@ fixture 读取 `API_BASE_URL` / `MCP` URL；默认本地：
 
 ## 8. 验收清单（Definition of Done）
 
-- [ ] `make test`（或等价）一条命令跑通默认套件  
-- [ ] `tests/api/` 覆盖用户 + 账单主路径  
-- [ ] `tests/mcp/` 至少包含 L1 + L4-lite + L1c  
-- [ ] golden 表面文件已提交；改 tool 名会失败  
-- [ ] README / 本文命令与仓库一致  
-- [ ] 现有 `scripts/*_client.py` 仍可作手工 E2E，或标明「已由 pytest e2e 替代」
+- [x] `make test`（或等价）一条命令跑通默认套件  
+- [x] `tests/api/` 覆盖用户 + 账单主路径  
+- [x] `tests/mcp/` 至少包含 L1 + L4-lite + L1c  
+- [x] golden 表面文件已提交；改 tool 名会失败  
+- [x] README / 本文命令与仓库一致  
+- [x] 现有 `scripts/*_client.py` 仍可作手工 E2E  
+- [ ] Phase 3：L2 MockTransport / L4 真传输（未做）
 
 ---
 
