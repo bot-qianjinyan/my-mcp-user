@@ -5,18 +5,18 @@
 ## 架构
 
 ```
-┌─────────────────┐     HTTP      ┌──────────────────────┐
-│  MCP Client     │──────────────▶│  MCP Server :3001    │
-│  (Cursor/脚本)  │  /mcp         │  Streamable HTTP     │
-└─────────────────┘               │  tools/resources/    │
-                                  │  prompts             │
-                                  └──────────┬───────────┘
-                                             │ httpx
-                                             ▼
-                                  ┌──────────────────────┐
-                                  │  User REST API :8000 │
-                                  │  FastAPI + SQLite    │
-                                  └──────────────────────┘
+┌──────────────────────┐          HTTP /mcp          ┌──────────────────────┐
+│  MCP Client          │ ──────────────────────────▶ │  MCP Server :3001    │
+│  (Cursor / scripts)  │                             │  Streamable HTTP     │
+└──────────────────────┘                             │  tools/resources/    │
+                                                     │  prompts             │
+                                                     └──────────┬───────────┘
+                                                                │ httpx
+                                                                ▼
+                                                     ┌──────────────────────┐
+                                                     │  User REST API :8000 │
+                                                     │  FastAPI + SQLite    │
+                                                     └──────────────────────┘
 ```
 
 ## 快速开始
@@ -119,16 +119,29 @@ python scripts/test_mcp_client.py
 
 ```
 my-mcp/
-├── app/                 # FastAPI 用户接口
-│   ├── main.py
-│   ├── routers/users.py
-│   ├── services.py
-│   ├── auth.py
-│   └── ...
-├── mcp_server/
-│   └── server.py        # Streamable HTTP MCP Server
+├── app/                      # FastAPI 用户 REST API
+│   ├── __init__.py
+│   ├── main.py               # 应用入口
+│   ├── config.py             # 配置（端口、数据库、JWT）
+│   ├── database.py           # SQLAlchemy / SQLite
+│   ├── models.py             # User 表模型
+│   ├── schemas.py            # 请求/响应 Pydantic 模型
+│   ├── auth.py               # 密码哈希、JWT、鉴权依赖
+│   ├── services.py           # 注册/登录/更新业务逻辑
+│   └── routers/
+│       ├── __init__.py
+│       └── users.py          # /api/users 路由
+├── mcp_server/               # Streamable HTTP MCP Server
+│   ├── __init__.py
+│   ├── __main__.py           # python -m mcp_server
+│   └── server.py             # Tools / Resources / Prompts
 ├── scripts/
-│   └── test_mcp_client.py
+│   ├── test_api_client.py    # 独立测试 REST API
+│   └── test_mcp_client.py    # 独立测试 MCP Server
+├── data/
+│   └── users.db              # SQLite 数据库（运行后生成）
+├── .env.example
+├── .gitignore
 ├── requirements.txt
 └── README.md
 ```
