@@ -141,6 +141,7 @@ make test
 # 或：
 # make test-api
 # make test-mcp
+# make test-e2e   # 只跑 L4 Streamable HTTP 等 e2e 标记
 
 # 测试分层说明（L2 Mock / L4 真传输等）：docs/MCP_L2_L4_EXPLAINED.zh.md
 
@@ -184,7 +185,8 @@ my-mcp/
 │       ├── test_surface_drift.py
 │       ├── test_protocol_behavior.py
 │       ├── test_resources_prompts.py
-│       └── test_tool_http_wiring.py  # L2 Mock：tool→REST 接线
+│       ├── test_tool_http_wiring.py          # L2 Mock：tool→REST 接线
+│       └── test_streamable_http_transport.py # L4：真 Streamable HTTP /mcp
 ├── scripts/
 │   ├── http_helpers.py           # REST 测试公共工具
 │   ├── mcp_helpers.py            # MCP 测试公共工具

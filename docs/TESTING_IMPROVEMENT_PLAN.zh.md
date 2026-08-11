@@ -124,7 +124,7 @@ flowchart TB
     L1c["<b>L1c · Resource/Prompt</b><br/>read / get_prompt 冒烟断言"]:::done
     L4l["<b>L4-lite · 协议行为</b><br/>未知工具、缺参被拒"]:::done
     L2["<b>L2 · 行为</b><br/>call_tool + MockTransport 打 REST"]:::done
-    L4["<b>L4 · 传输层</b><br/>Streamable HTTP initialize /mcp"]:::gap
+    L4["<b>L4 · 传输层</b><br/>Streamable HTTP initialize /mcp"]:::done
     L5["<b>L5 · E2E</b><br/>真起 API+MCP 跑只读链路"]:::done
 
     L0 --> L1 --> L1b --> L4l --> L1c --> L2 --> L4 --> L5
@@ -261,12 +261,12 @@ tests/
 }
 ```
 
-### Phase 3 — 行为 Mock + 传输层
+### Phase 3 — 行为 Mock + 传输层（**L2/L4 已完成**）
 
 | # | 任务 | 状态 |
 |---|---|---|
 | 3.1 | **L2**：`httpx.MockTransport` 断言 method/path/headers/json | **Done** — `test_tool_http_wiring.py` |
-| 3.2 | **L4**：对 Streamable HTTP 做 `initialize` + `tools/list` | 未做 |
+| 3.2 | **L4**：Streamable HTTP `initialize` + `tools/list` | **Done** — `test_streamable_http_transport.py`（fixture 自启随机端口） |
 | 3.3 | （可选）鉴权中间件 | 未做 |
 | 3.4 | 覆盖率门槛（可选） | 未做 |
 
@@ -303,18 +303,18 @@ async def test_list_tools_not_empty():
         assert "create_bill" in names
 ```
 
-### 6.3 MCP E2E（需 API + MCP 进程）
-
-保留现有脚本，或：
+### 6.3 MCP L4 真传输（fixture 自启，无需本机 3001）
 
 ```bash
-pytest -m e2e
+make test-e2e
+# 或
+pytest -m e2e -q
 ```
 
-fixture 读取 `API_BASE_URL` / `MCP` URL；默认本地：
+实现：`tests/mcp/test_streamable_http_transport.py`  
+用 `mcp.streamable_http_app()` + uvicorn 随机端口，再 `Client("http://127.0.0.1:<port>/mcp")`。
 
-- API：`http://127.0.0.1:8000`
-- MCP：`http://127.0.0.1:3001/mcp`
+业务向 E2E 仍可用 scripts（需手动起 API + MCP `:3001`）。
 
 ---
 
@@ -338,8 +338,9 @@ fixture 读取 `API_BASE_URL` / `MCP` URL；默认本地：
 - [x] golden 表面文件已提交；改 tool 名会失败  
 - [x] README / 本文命令与仓库一致  
 - [x] 现有 `scripts/*_client.py` 仍可作手工 E2E  
-- [x] Phase 3 部分：L2 MockTransport（已做）  
-- [ ] Phase 3 剩余：L4 真传输（未做）
+- [x] Phase 3：L2 MockTransport（已做）  
+- [x] Phase 3：L4 真传输（已做）  
+- [ ] （可选）MCP 网关鉴权 / 覆盖率门槛
 
 ---
 

@@ -1,4 +1,4 @@
-.PHONY: test test-api test-mcp
+.PHONY: test test-api test-mcp test-e2e
 
 test: test-api test-mcp
 
@@ -7,3 +7,6 @@ test-api:
 
 test-mcp:
 	python -m pytest tests/mcp -q
+
+test-e2e:
+	python -m pytest -m e2e -q

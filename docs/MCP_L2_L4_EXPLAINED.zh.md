@@ -147,12 +147,15 @@ async with Client("http://127.0.0.1:3001/mcp") as client:
 
 ### 2.6 当前仓库状态
 
-- **尚未有**独立的 L4 pytest  
-- `scripts/test_mcp_*_client.py` 通过真 URL 连接，属于 **L5 风格 E2E**，部分覆盖传输，但通常和业务断言混在一起  
-- 默认 `make test` 里的 MCP 用例用内存 `Client(mcp)`，**不算** L4
+- **L4 已落地**：`tests/mcp/test_streamable_http_transport.py`
+  - fixture 在随机端口拉起 `mcp.streamable_http_app()`
+  - 用 `Client("http://127.0.0.1:<port>/mcp")` 做握手 + `tools/list` / `call_tool`
+  - 校验错误路径 `/` 不是 MCP 端点
+- 标记：`@pytest.mark.e2e`；`make test` / `make test-mcp` 会跑；也可 `make test-e2e` 只跑传输层
 - **L2 Mock 已落地**：`tests/mcp/test_tool_http_wiring.py`（不起真实 API）
+- 手工脚本 `scripts/test_mcp_*_client.py` 仍可连本机 `:3001` 做完整业务 E2E
 
-本仓库 MCP 端点默认：
+本仓库本地手工 MCP 端点默认：
 
 ```text
 http://127.0.0.1:3001/mcp
@@ -174,10 +177,10 @@ python -m mcp_server                                 # MCP :3001
 ─────────────────────────────────
 L1 / L1b / L4-lite / L1c   协议表面与规矩（已有 tests/mcp/）
 tests/api/                 REST 业务（已有）
-L2 Mock                    tool→REST 接线（未做）
+L2 Mock                    tool→REST 接线（已有）
+L4 真传输                  fixture 自启 HTTP /mcp（已有）
 ─────────────────────────────────
 更重、常要起服务
-L4 真传输                  HTTP /mcp 握手（未做独立用例）
 L5 / scripts E2E           真 API + 真 MCP 整链路（已有 scripts/）
 ```
 
@@ -190,7 +193,7 @@ L5 / scripts E2E           真 API + 真 MCP 整链路（已有 scripts/）
 | L4-lite 协议行为 | 未知 tool / 缺参应失败 | `tests/mcp/test_protocol_behavior.py` | 已有 |
 | L1c Resource/Prompt | read / get_prompt 能返回 | `tests/mcp/test_resources_prompts.py` | 已有 |
 | **L2 Mock** | tool 是否打对 REST | `tests/mcp/test_tool_http_wiring.py` | **已有** |
-| **L4 真传输** | `/mcp` HTTP 握手 | （待加） | 未做 |
+| **L4 真传输** | `/mcp` HTTP 握手 | `tests/mcp/test_streamable_http_transport.py` | **已有** |
 | API | 用户/账单业务 | `tests/api/` | 已有 |
 | scripts E2E | 手工整链路 | `scripts/test_*_client.py` | 已有 |
 
@@ -234,11 +237,12 @@ L5 / scripts E2E           真 API + 真 MCP 整链路（已有 scripts/）
 - `list_my_bills` → `GET /api/bills` + Bearer
 - `share_bill` → `POST /api/bills/{id}/share` + Bearer
 
-### L4（可标记 `@pytest.mark.e2e`）
+### L4（已落地）
 
-1. 测试前启动（或 fixture 拉起）`python -m mcp_server`  
-2. `Client("http://127.0.0.1:3001/mcp")` 做 `initialize` + `tools/list`  
-3. 默认 `make test` 可不跑；`make test-e2e` 再跑
+1. `tests/mcp/test_streamable_http_transport.py`
+2. fixture 自启 `streamable_http_app`（随机端口，不依赖本机 3001）
+3. `Client("http://127.0.0.1:<port>/mcp")`：`tools/list` + 缺参 `call_tool` + 错误路径断言
+4. `make test-e2e` 可只跑 `@pytest.mark.e2e`
 
 ---
 
