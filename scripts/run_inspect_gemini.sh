@@ -12,6 +12,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 # shellcheck disable=SC1091
 source .venv/bin/activate
+# Inspect 按文件路径加载任务时需要项目根在 PYTHONPATH 中
+export PYTHONPATH="${ROOT}${PYTHONPATH:+:$PYTHONPATH}"
 
 MODEL="${1:-google/gemini-3.6-flash}"
 TASK="${2:-evals/user_mcp_smoke.py}"

@@ -13,6 +13,13 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
 from inspect_ai import Task, task
 
 from evals._common import ALL_AUTH_BILL_TOOLS, agent_task, unique_user

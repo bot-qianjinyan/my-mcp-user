@@ -5,11 +5,11 @@ from __future__ import annotations
 import os
 import uuid
 
+from inspect_ai import Task
 from inspect_ai.agent import react
 from inspect_ai.dataset import Sample
 from inspect_ai.scorer import includes
 from inspect_ai.tool import mcp_server_http, mcp_tools
-from inspect_ai import Task
 
 
 def mcp_url() -> str:
