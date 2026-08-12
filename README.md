@@ -164,6 +164,10 @@ pip install -r requirements-inspect.txt
 inspect eval evals/user_mcp_smoke.py --model openai/gpt-4o
 inspect view
 
+# 账单等多场景
+./scripts/run_inspect_gemini.sh google/gemini-3.6-flash evals/bill_mcp_scenarios.py
+./scripts/run_inspect_gemini.sh google/gemini-3.6-flash suite
+
 # 无 API Key 时：用 mockllm 本地验证 Inspect→MCP 接线
 python scripts/run_inspect_user_mcp_smoke_mock.py
 
@@ -214,7 +218,10 @@ my-mcp/
 │       └── test_streamable_http_transport.py # L4：真 Streamable HTTP /mcp
 ├── evals/                            # Inspect 评测示例
 │   ├── __init__.py
-│   └── user_mcp_smoke.py             # 最小任务：对接 http://127.0.0.1:3001/mcp
+│   ├── _common.py                    # MCP/Agent 公共辅助
+│   ├── user_mcp_smoke.py             # 冒烟：注册/登录/创建账单
+│   ├── user_profile_scenarios.py     # 用户资料更新
+│   └── bill_mcp_scenarios.py         # 账单 CRUD / 点赞 / 分享
 ├── scripts/
 │   ├── http_helpers.py           # REST 测试公共工具
 │   ├── mcp_helpers.py            # MCP 测试公共工具

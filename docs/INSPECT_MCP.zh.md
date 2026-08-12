@@ -45,24 +45,35 @@ Inspect 把 MCP Server 封装成 `ToolSource`，可直接传给 `tools=[...]`：
 
 最小示例任务见：[`evals/user_mcp_smoke.py`](../evals/user_mcp_smoke.py)
 
-前置：
+更多场景：
 
-1. 终端 1：`uvicorn app.main:app --host 127.0.0.1 --port 8000`  
-2. 终端 2：`python -m mcp_server`（监听 `3001`）  
-3. 安装：`pip install -r requirements-inspect.txt`，并配置模型 API Key  
+| 文件 | Task | 覆盖 |
+|------|------|------|
+| `evals/user_mcp_smoke.py` | `user_mcp_smoke` | 注册 / 登录 / 创建账单 |
+| `evals/user_profile_scenarios.py` | `user_profile_flow` | 更新资料 / 读取当前用户 |
+| `evals/bill_mcp_scenarios.py` | `bill_crud_flow` | 创建 / 列表 / 详情 / 更新 / 删除 |
+| 同上 | `bill_like_flow` | 点赞 / 取消点赞 |
+| 同上 | `bill_share_flow` | 双用户分享 / 共享列表 / 点赞 / 取消分享 |
+| 同上 | `bill_list_filter_smoke` | 多笔账单列表与详情 |
 
 运行：
 
 ```bash
 source .venv/bin/activate
-inspect eval evals/user_mcp_smoke.py --model openai/gpt-4o
+
+# 冒烟
+./scripts/run_inspect_gemini.sh google/gemini-3.6-flash evals/user_mcp_smoke.py
+
+# 全部账单场景
+./scripts/run_inspect_gemini.sh google/gemini-3.6-flash evals/bill_mcp_scenarios.py
+
+# 单个分享场景
+./scripts/run_inspect_gemini.sh google/gemini-3.6-flash evals/bill_mcp_scenarios.py@bill_share_flow
+
+# 用户+账单整套
+./scripts/run_inspect_gemini.sh google/gemini-3.6-flash suite
+
 inspect view
-```
-
-若当前环境没有模型 API Key，可用 mockllm 本地验证 Inspect→MCP 接线（不调用真实模型）：
-
-```bash
-python scripts/run_inspect_user_mcp_smoke_mock.py
 ```
 
 ## 心智对照

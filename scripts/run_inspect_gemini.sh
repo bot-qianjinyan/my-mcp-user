@@ -87,4 +87,15 @@ fi
 echo "SSL_CERT_FILE=$SSL_CERT_FILE"
 echo "API docs: $API_DOCS"
 echo "model=$MODEL task=$TASK"
+# 支持：
+#   ./scripts/run_inspect_gemini.sh google/gemini-3.6-flash evals/bill_mcp_scenarios.py
+#   ./scripts/run_inspect_gemini.sh google/gemini-3.6-flash evals/bill_mcp_scenarios.py@bill_share_flow
+#   ./scripts/run_inspect_gemini.sh google/gemini-3.6-flash suite
+if [[ "$TASK" == "suite" ]]; then
+  exec inspect eval \
+    evals/user_mcp_smoke.py \
+    evals/user_profile_scenarios.py \
+    evals/bill_mcp_scenarios.py \
+    --model "$MODEL"
+fi
 exec inspect eval "$TASK" --model "$MODEL"
