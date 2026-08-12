@@ -171,6 +171,8 @@ python scripts/run_inspect_user_mcp_smoke_mock.py
 ./scripts/build_ssl_certs.sh
 export GOOGLE_API_KEY='...'
 ./scripts/run_inspect_gemini.sh google/gemini-3.6-flash
+# 脚本会自动检查/拉起 API(:8000)+MCP(:3001)；若仍 ConnectError，先手动：
+#   ./scripts/start_services.sh
 ```
 
 说明见 [docs/INSPECT_MCP.zh.md](docs/INSPECT_MCP.zh.md)。

@@ -100,3 +100,16 @@ export SSL_CERT_FILE="$PWD/.certs/combined-ca.pem"
 export REQUESTS_CA_BUNDLE="$SSL_CERT_FILE"
 inspect eval evals/user_mcp_smoke.py --model google/gemini-3.6-flash
 ```
+
+### MCP `ConnectError` / `streamablehttp_client`
+
+若日志里出现 `httpx2.ConnectError: All connection attempts failed` 且栈在 `streamable_http`，通常是 **MCP(:3001) 没启动**（后面的 cancel scope 报错多为连带清理噪音）。
+
+```bash
+./scripts/start_services.sh   # 拉起 API:8000 + MCP:3001
+# 或分别：
+# uvicorn app.main:app --host 127.0.0.1 --port 8000
+# python -m mcp_server
+```
+
+`./scripts/run_inspect_gemini.sh` 现已带预检，未起服务时会自动尝试拉起。
